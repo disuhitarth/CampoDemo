@@ -3,15 +3,16 @@
 import { useApp } from '@/context/AppContext';
 import { UNITS } from '@/lib/data';
 import { motion } from 'framer-motion';
-import { Thermometer, Zap, Droplets, Activity, AlertTriangle, Power, Clock, TrendingUp } from 'lucide-react';
+import type { Variants } from 'framer-motion';
+import { Thermometer, Zap, Droplets, AlertTriangle, Power, Clock, TrendingUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MiniSparkline from '@/components/MiniSparkline';
 import BeckettPanel from '@/components/BeckettPanel';
 import StackLight from '@/components/StackLight';
 
-const fadeUp = {
+const fadeUp: Variants = {
     hidden: { opacity: 0, y: 16 },
-    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.35, ease: 'easeOut' } }),
+    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] } }),
 };
 
 export default function DashboardView() {
