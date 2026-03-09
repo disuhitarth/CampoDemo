@@ -51,6 +51,7 @@ export default function Sidebar() {
                         const active = currentView === view;
                         return (
                             <button
+                                key={view}
                                 onClick={() => {
                                     setView(view);
                                     setMobileMenuOpen(false); // Auto-close on mobile

@@ -2,6 +2,7 @@
 
 import { Unit } from '@/lib/data';
 import { motion } from 'framer-motion';
+import { useApp } from '@/context/AppContext';
 
 const LED_COLORS: Record<string, { off: string; on: string; glow: string }> = {
     green: { off: '#1a2a1a', on: '#00ff44', glow: 'rgba(0,255,68,0.6)' },
@@ -10,6 +11,36 @@ const LED_COLORS: Record<string, { off: string; on: string; glow: string }> = {
 };
 
 export default function BeckettPanel({ unit }: { unit: Unit }) {
+    const { updateUnit, updateLiveData, clearAlerts } = useApp();
+
+    const resetLockout = (heaterId: number) => {
+        const heaters = [...unit.heaters];
+        const hIdx = heaters.findIndex(h => h.id === heaterId);
+        if (hIdx > -1) {
+            heaters[hIdx] = {
+                ...heaters[hIdx],
+                status: 'operational',
+                faultCode: undefined,
+                leds: heaters[hIdx].leds.map(led => {
+                    if (led.label === 'LOCKOUT' || led.label === 'FAULT') return { ...led, active: false };
+                    if (led.label === 'FLAME') return { ...led, active: true, color: 'green' };
+                    return led;
+                })
+            };
+        }
+
+        const hasLockout = heaters.some(h => h.status === 'lockout');
+        const hasWarning = heaters.some(h => h.status === 'warning');
+        const unitStatus = hasLockout ? 'offline' : hasWarning ? 'warning' : 'online';
+
+        updateUnit(unit.id, { status: unitStatus, machineOn: unitStatus !== 'offline', heaters });
+
+        if (unitStatus === 'online') {
+            updateLiveData(unit.id, { fuelPct: 85, voltage: 119.5, supplyTemp: 145 });
+            clearAlerts();
+        }
+    };
+
     return (
         <div className="rounded-2xl p-5 h-full" style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
             <div className="flex items-center justify-between mb-4">
@@ -70,8 +101,11 @@ export default function BeckettPanel({ unit }: { unit: Unit }) {
                             </div>
 
                             {heater.status === 'lockout' && (
-                                <button className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-80"
-                                    style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}>
+                                <button
+                                    onClick={() => resetLockout(heater.id)}
+                                    className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all hover:bg-opacity-80"
+                                    style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' }}
+                                >
                                     Reset Lockout
                                 </button>
                             )}
