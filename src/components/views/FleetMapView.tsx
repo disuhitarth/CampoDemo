@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useApp } from '@/context/AppContext';
-import { UNITS } from '@/lib/data';
 import { motion } from 'framer-motion';
 import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
 
@@ -22,8 +21,8 @@ const STATUS_ICONS = {
 };
 
 export default function FleetMapView() {
-    const { setSelectedUnit, setView } = useApp();
-    const units = Object.values(UNITS);
+    const { setSelectedUnit, setView, units: contextUnits } = useApp();
+    const units = Object.values(contextUnits);
 
     const handleCardClick = (unitId: string) => {
         setSelectedUnit(unitId);

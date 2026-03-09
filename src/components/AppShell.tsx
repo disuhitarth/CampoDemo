@@ -8,6 +8,7 @@ import DashboardView from './views/DashboardView';
 import FleetMapView from './views/FleetMapView';
 import HistoryView from './views/HistoryView';
 import AlertsView from './views/AlertsView';
+import DemoToolbar from './DemoToolbar';
 
 const views = {
     dashboard: DashboardView,
@@ -40,6 +41,7 @@ export default function AppShell() {
                     </AnimatePresence>
                 </main>
             </div>
+            <DemoToolbar />
         </div>
     );
 }

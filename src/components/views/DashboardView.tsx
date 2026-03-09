@@ -1,10 +1,9 @@
 'use client';
 
 import { useApp } from '@/context/AppContext';
-import { UNITS } from '@/lib/data';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Thermometer, Zap, Droplets, AlertTriangle, Power, Clock, TrendingUp } from 'lucide-react';
+import { Thermometer, Zap, Droplets, AlertTriangle, Power, Clock, TrendingUp, Wrench } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MiniSparkline from '@/components/MiniSparkline';
 import BeckettPanel from '@/components/BeckettPanel';
@@ -16,8 +15,8 @@ const fadeUp: Variants = {
 };
 
 export default function DashboardView() {
-    const { selectedUnit, liveData, addAlert, setView } = useApp();
-    const unit = UNITS[selectedUnit];
+    const { selectedUnit, liveData, addAlert, setView, units } = useApp();
+    const unit = units[selectedUnit];
     const live = liveData[selectedUnit];
     const [holding, setHolding] = useState(false);
     const [holdProgress, setHoldProgress] = useState(0);
@@ -168,19 +167,63 @@ export default function DashboardView() {
                 </motion.div>
             </div>
 
-            {/* E-Stop */}
-            <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible"
-                className="rounded-2xl p-5 flex items-center justify-between gap-4"
-                style={{ background: 'linear-gradient(135deg, #1a0a0a, #1e0e0e)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <div className="flex items-center gap-4">
-                    <AlertTriangle className="w-7 h-7 text-[#EF4444] flex-shrink-0" />
-                    <div>
-                        <div className="text-sm font-bold text-[#EF4444] uppercase tracking-wider">E-Stop Activations</div>
-                        <div className="text-xs text-[#7A8299] mt-0.5">Physical emergency stop press count</div>
+            {/* Bottom Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* E-Stop */}
+                <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible"
+                    className="rounded-2xl p-5 flex items-center justify-between gap-4"
+                    style={{ background: 'linear-gradient(135deg, #1a0a0a, #1e0e0e)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    <div className="flex items-center gap-4">
+                        <AlertTriangle className="w-7 h-7 text-[#EF4444] flex-shrink-0" />
+                        <div>
+                            <div className="text-sm font-bold text-[#EF4444] uppercase tracking-wider">E-Stop Activations</div>
+                            <div className="text-xs text-[#7A8299] mt-0.5">Physical emergency stop press count</div>
+                        </div>
                     </div>
-                </div>
-                <span className="text-5xl font-bold font-mono text-[#EF4444]">{unit.estopCount}</span>
-            </motion.div>
+                    <span className="text-5xl font-bold font-mono text-[#EF4444]">{unit.estopCount}</span>
+                </motion.div>
+
+                {/* Maintenance */}
+                <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible"
+                    className="rounded-2xl p-5"
+                    style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.1)' }}>
+                                <Wrench className="w-4 h-4 text-[#3B82F6]" />
+                            </div>
+                            <div>
+                                <div className="text-sm font-bold text-white uppercase tracking-wider">Maintenance</div>
+                                <div className="text-xs text-[#7A8299]">Service schedule & health</div>
+                            </div>
+                        </div>
+                        <span className="text-xs font-bold text-[#3B82F6] px-2 py-0.5 rounded-full" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
+                            Due in 142h
+                        </span>
+                    </div>
+
+                    <div className="space-y-3">
+                        <div>
+                            <div className="flex justify-between text-xs mb-1.5">
+                                <span className="text-[#E8EAF0]">Burner Nozzle & Fuel Filter</span>
+                                <span className="text-[#3B82F6] font-mono">85%</span>
+                            </div>
+                            <div className="w-full bg-[#1A2235] rounded-full h-1.5 overflow-hidden">
+                                <div className="bg-[#3B82F6] h-1.5 rounded-full" style={{ width: '85%' }} />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="flex justify-between text-xs mb-1.5">
+                                <span className="text-[#E8EAF0]">Heat Exchanger Cleaning</span>
+                                <span className="text-[#22C55E] font-mono">92%</span>
+                            </div>
+                            <div className="w-full bg-[#1A2235] rounded-full h-1.5 overflow-hidden">
+                                <div className="bg-[#22C55E] h-1.5 rounded-full" style={{ width: '92%' }} />
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 }

@@ -10,6 +10,8 @@ interface AppState {
     alerts: Alert[];
     alertFilter: string;
     liveData: Record<string, { supplyTemp: number; returnTemp: number; voltage: number; fuelPct: number }>;
+    units: Record<string, Unit>;
+    mobileMenuOpen: boolean;
 }
 
 interface AppContextValue extends AppState {
@@ -22,6 +24,8 @@ interface AppContextValue extends AppState {
     addAlert: (alert: Omit<Alert, 'id'>) => void;
     setAlertFilter: (filter: string) => void;
     updateLiveData: (unitId: string, data: Partial<AppState['liveData'][string]>) => void;
+    updateUnit: (unitId: string, data: Partial<Unit>) => void;
+    setMobileMenuOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -42,6 +46,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         alerts: SEED_ALERTS.map(a => ({ ...a, time: new Date(a.time) })),
         alertFilter: 'all',
         liveData: initLiveData(),
+        units: UNITS,
+        mobileMenuOpen: false,
     });
 
     const login = useCallback((user: User) => setState(s => ({ ...s, user })), []);
@@ -56,9 +62,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setState(s => ({ ...s, alerts: [{ ...alert, id: Date.now() }, ...s.alerts] })), []);
     const updateLiveData = useCallback((unitId: string, data: Partial<AppState['liveData'][string]>) =>
         setState(s => ({ ...s, liveData: { ...s.liveData, [unitId]: { ...s.liveData[unitId], ...data } } })), []);
+    const updateUnit = useCallback((unitId: string, data: Partial<Unit>) =>
+        setState(s => ({ ...s, units: { ...s.units, [unitId]: { ...s.units[unitId], ...data } } })), []);
+    const setMobileMenuOpen = useCallback((open: boolean) => setState(s => ({ ...s, mobileMenuOpen: open })), []);
 
     return (
-        <AppContext.Provider value={{ ...state, login, logout, setView, setSelectedUnit, acknowledgeAlert, clearAlerts, addAlert, setAlertFilter, updateLiveData }}>
+        <AppContext.Provider value={{ ...state, login, logout, setView, setSelectedUnit, acknowledgeAlert, clearAlerts, addAlert, setAlertFilter, updateLiveData, updateUnit, setMobileMenuOpen }}>
             {children}
         </AppContext.Provider>
     );

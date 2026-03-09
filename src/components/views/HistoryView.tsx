@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
-import { UNITS, genHistoryData, TimeRange } from '@/lib/data';
+import { genHistoryData, TimeRange } from '@/lib/data';
 import { motion } from 'framer-motion';
 import {
     AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine,
@@ -27,8 +27,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export default function HistoryView() {
-    const { selectedUnit } = useApp();
-    const unit = UNITS[selectedUnit];
+    const { selectedUnit, units } = useApp();
+    const unit = units[selectedUnit];
     const [range, setRange] = useState<TimeRange>('24h');
     const [showSupply, setShowSupply] = useState(true);
     const [showReturn, setShowReturn] = useState(true);
@@ -38,7 +38,7 @@ export default function HistoryView() {
         return d.labels.map((label, i) => ({
             label, supply: d.supplyData[i], returnT: d.returnData[i], voltage: d.voltageData[i], fuel: d.fuelData[i],
         }));
-    }, [unit.id, range]); // eslint-disable-line
+    }, [unit, range]); // Removed disable-line to trigger correctly when unit data changes.
 
     return (
         <div className="space-y-5 max-w-[1400px]">
