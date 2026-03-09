@@ -3,11 +3,13 @@
 import { useApp } from '@/context/AppContext';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
-import { Thermometer, Zap, Droplets, AlertTriangle, Power, Clock, TrendingUp, Wrench } from 'lucide-react';
+import { Thermometer, Zap, Droplets, AlertTriangle, Power, Clock, TrendingUp, Wrench, CloudSnow, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MiniSparkline from '@/components/MiniSparkline';
 import BeckettPanel from '@/components/BeckettPanel';
 import StackLight from '@/components/StackLight';
+import HeatFlowDiagram from '@/components/HeatFlowDiagram';
+import ServiceLogWidget from '@/components/ServiceLogWidget';
 
 const fadeUp: Variants = {
     hidden: { opacity: 0, y: 16 },
@@ -22,6 +24,11 @@ export default function DashboardView() {
     const [holdProgress, setHoldProgress] = useState(0);
     const [machineOn, setMachineOn] = useState(unit.machineOn);
     const holdTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    const fuelEstHours = live.fuelPct * 1.2;
+    const fuelEstStr = live.fuelPct === 0 ? 'Empty' : fuelEstHours > 24
+        ? `Est. Empty: ${Math.floor(fuelEstHours / 24)}d ${Math.floor(fuelEstHours % 24)}h`
+        : `Est. Empty: ${Math.floor(fuelEstHours)}h`;
 
     useEffect(() => { setMachineOn(unit.machineOn); }, [unit]);
 
@@ -66,6 +73,9 @@ export default function DashboardView() {
                             ● {statusLabel}
                         </span>
                         <span className="text-xs text-[#7A8299]">📍 {unit.site}</span>
+                        <span className="text-xs text-[#3B82F6] flex items-center gap-1.5 px-2 py-0.5 rounded-full" style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                            <CloudSnow className="w-3.5 h-3.5" /> -35°C (Snow)
+                        </span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#7A8299]">
@@ -80,15 +90,22 @@ export default function DashboardView() {
                     { label: 'Supply Temp', value: `${live.supplyTemp}°F`, icon: Thermometer, color: '#FF6B35', sub: `ΔT: ${(live.supplyTemp - live.returnTemp).toFixed(0)}°F` },
                     { label: 'Return Temp', value: `${live.returnTemp}°F`, icon: Thermometer, color: '#3B82F6', sub: 'Sensor: Type J TC' },
                     { label: 'Supply Voltage', value: `${live.voltage}V`, icon: Zap, color: '#A78BFA', sub: 'Nominal 120VAC' },
-                    { label: 'Fuel Level', value: `${live.fuelPct}%`, icon: Droplets, color: live.fuelPct < 20 ? '#EF4444' : live.fuelPct < 40 ? '#F59E0B' : '#22C55E', sub: live.fuelPct < 20 ? '⚠ Low — refill soon' : 'Rochester 0–10V' },
-                ].map(({ label, value, icon: Icon, color, sub }, i) => (
+                    { label: 'Fuel Level', value: `${live.fuelPct}%`, icon: Droplets, color: live.fuelPct < 20 ? '#EF4444' : live.fuelPct < 40 ? '#F59E0B' : '#22C55E', sub: fuelEstStr, actionIcon: Settings },
+                ].map(({ label, value, icon: Icon, color, sub, actionIcon: ActionIcon }, i) => (
                     <motion.div key={label} custom={i + 1} variants={fadeUp} initial="hidden" animate="visible"
-                        className="rounded-2xl p-5"
+                        className="rounded-2xl p-5 relative"
                         style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-xs font-bold uppercase tracking-wider text-[#7A8299]">{label}</span>
-                            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
-                                <Icon className="w-4 h-4" style={{ color }} />
+                            <div className="flex items-center gap-2">
+                                {ActionIcon && (
+                                    <button title="Threshold Settings" className="text-[#4A5168] hover:text-[#fff] transition-colors p-1">
+                                        <ActionIcon className="w-4 h-4 cursor-pointer" />
+                                    </button>
+                                )}
+                                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
+                                    <Icon className="w-4 h-4" style={{ color }} />
+                                </div>
                             </div>
                         </div>
                         <div className="text-3xl font-bold font-mono" style={{ color }}>{value}</div>
@@ -98,7 +115,7 @@ export default function DashboardView() {
             </div>
 
             {/* Main panels */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
                 {/* Power control */}
                 <motion.div custom={5} variants={fadeUp} initial="hidden" animate="visible"
                     className="rounded-2xl p-6 flex flex-col items-center justify-center gap-4 lg:col-span-1"
@@ -139,8 +156,15 @@ export default function DashboardView() {
                     <p className="text-xs text-[#4A5168]">Hold for 3 seconds</p>
                 </motion.div>
 
-                {/* Temp chart */}
+                {/* Heat Flow Diagram */}
                 <motion.div custom={6} variants={fadeUp} initial="hidden" animate="visible"
+                    className="rounded-2xl lg:col-span-1 border border-[rgba(255,255,255,0.07)]"
+                    style={{ background: '#0E1525' }}>
+                    <HeatFlowDiagram machineOn={machineOn} supplyTemp={live.supplyTemp} returnTemp={live.returnTemp} />
+                </motion.div>
+
+                {/* Temp chart */}
+                <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible"
                     className="rounded-2xl p-5 lg:col-span-2"
                     style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
                     <div className="flex items-center justify-between mb-4">
@@ -159,18 +183,18 @@ export default function DashboardView() {
 
             {/* Beckett + Stack Light */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <motion.div custom={7} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-2">
+                <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible" className="lg:col-span-2">
                     <BeckettPanel unit={unit} />
                 </motion.div>
-                <motion.div custom={8} variants={fadeUp} initial="hidden" animate="visible">
+                <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible">
                     <StackLight unit={unit} machineOn={machineOn} />
                 </motion.div>
             </div>
 
             {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 {/* E-Stop */}
-                <motion.div custom={9} variants={fadeUp} initial="hidden" animate="visible"
+                <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible"
                     className="rounded-2xl p-5 flex items-center justify-between gap-4"
                     style={{ background: 'linear-gradient(135deg, #1a0a0a, #1e0e0e)', border: '1px solid rgba(239,68,68,0.2)' }}>
                     <div className="flex items-center gap-4">
@@ -184,7 +208,7 @@ export default function DashboardView() {
                 </motion.div>
 
                 {/* Maintenance */}
-                <motion.div custom={10} variants={fadeUp} initial="hidden" animate="visible"
+                <motion.div custom={11} variants={fadeUp} initial="hidden" animate="visible"
                     className="rounded-2xl p-5"
                     style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
                     <div className="flex items-center justify-between mb-4">
@@ -222,6 +246,11 @@ export default function DashboardView() {
                             </div>
                         </div>
                     </div>
+                </motion.div>
+
+                {/* Service Log Widget */}
+                <motion.div custom={12} variants={fadeUp} initial="hidden" animate="visible">
+                    <ServiceLogWidget />
                 </motion.div>
             </div>
         </div>
