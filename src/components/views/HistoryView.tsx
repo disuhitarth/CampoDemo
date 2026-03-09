@@ -4,8 +4,9 @@ import { useState, useMemo } from 'react';
 import { useApp } from '@/context/AppContext';
 import { genHistoryData, TimeRange } from '@/lib/data';
 import { motion } from 'framer-motion';
+import { Download, DollarSign, Activity, AlertTriangle } from 'lucide-react';
 import {
-    AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+    AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, ReferenceDot
 } from 'recharts';
 
 const RANGES: TimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -32,6 +33,17 @@ export default function HistoryView() {
     const [range, setRange] = useState<TimeRange>('24h');
     const [showSupply, setShowSupply] = useState(true);
     const [showReturn, setShowReturn] = useState(true);
+    const [downloading, setDownloading] = useState(false);
+
+    const handleExport = () => {
+        setDownloading(true);
+        setTimeout(() => setDownloading(false), 1500);
+    };
+
+    const costEstimate = useMemo(() => {
+        const rates: Record<TimeRange, number> = { '1h': 8.5, '6h': 42.0, '24h': 168.5, '7d': 1142.0, '30d': 4890.0 };
+        return rates[range];
+    }, [range]);
 
     const data = useMemo(() => {
         const d = genHistoryData(unit, range);
@@ -44,26 +56,58 @@ export default function HistoryView() {
         <div className="space-y-5 max-w-[1400px]">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h1 className="text-xl font-bold text-white">Historical Data</h1>
-                    <p className="text-sm text-[#7A8299] mt-0.5">Parameter trends for {unit.name} — SN: {unit.serial}</p>
+                    <h1 className="text-xl font-bold text-white">Historical Analytics</h1>
+                    <p className="text-sm text-[#7A8299] mt-0.5">Performance & cost data for {unit.name} — SN: {unit.serial}</p>
                 </div>
 
-                {/* Range tabs */}
-                <div className="flex gap-1 p-1 rounded-xl" style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
-                    {RANGES.map(r => (
-                        <button key={r}
-                            onClick={() => setRange(r)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                            style={range === r
-                                ? { background: 'rgba(255,107,53,0.15)', color: '#FF6B35', border: '1px solid rgba(255,107,53,0.25)' }
-                                : { color: '#7A8299', border: '1px solid transparent' }
-                            }
-                        >
-                            {r.toUpperCase()}
-                        </button>
-                    ))}
+                <div className="flex items-center gap-3">
+                    <button onClick={handleExport} disabled={downloading}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                        style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.3)' }}>
+                        <Download className="w-3.5 h-3.5" /> {downloading ? 'Exporting...' : 'Export Report'}
+                    </button>
+
+                    {/* Range tabs */}
+                    <div className="flex gap-1 p-1 rounded-xl" style={{ background: '#0E1525', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        {RANGES.map(r => (
+                            <button key={r}
+                                onClick={() => setRange(r)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                                style={range === r
+                                    ? { background: 'rgba(255,107,53,0.15)', color: '#FF6B35', border: '1px solid rgba(255,107,53,0.25)' }
+                                    : { color: '#7A8299', border: '1px solid transparent' }
+                                }
+                            >
+                                {r.toUpperCase()}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
+
+            {/* Financial Overlay */}
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-2xl p-4"
+                style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(34,197,94,0.02))', border: '1px solid rgba(34,197,94,0.2)' }}>
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.15)' }}>
+                        <DollarSign className="w-5 h-5 text-[#22C55E]" />
+                    </div>
+                    <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Est. Fuel Cost ({range})</div>
+                        <div className="text-2xl font-bold font-mono text-white mt-0.5">${costEstimate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4 sm:border-l sm:pl-4" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(34,197,94,0.15)' }}>
+                        <Activity className="w-5 h-5 text-[#22C55E]" />
+                    </div>
+                    <div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#22C55E]">Burn Rate Avg</div>
+                        <div className="text-lg font-bold font-mono text-white mt-0.5">1.4L / hour</div>
+                    </div>
+                </div>
+            </motion.div>
 
             {/* Param toggles */}
             <div className="flex gap-4 flex-wrap">
@@ -96,6 +140,14 @@ export default function HistoryView() {
                             <YAxis tick={{ fill: '#4A5168', fontSize: 9 }} tickLine={false} axisLine={false} unit="°F" />
                             <Tooltip content={<CustomTooltip />} />
                             <Legend wrapperStyle={{ fontSize: 11, color: '#7A8299', paddingTop: 8 }} />
+
+                            {/* Anomaly Marker */}
+                            {data.length > 5 && range === '24h' && (
+                                <ReferenceDot x={data[data.length - 4].label} y={data[data.length - 4].supply} r={4} fill="#EF4444" stroke="none">
+                                    <title>Performance Anomaly Detected</title>
+                                </ReferenceDot>
+                            )}
+
                             {showSupply && <Area type="monotone" dataKey="supply" name="Supply °F" stroke="#FF6B35" strokeWidth={2} fill="url(#sg)" dot={false} />}
                             {showReturn && <Area type="monotone" dataKey="returnT" name="Return °F" stroke="#3B82F6" strokeWidth={2} fill="url(#rg)" dot={false} />}
                         </AreaChart>

@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css';
 interface Props {
     units: Unit[];
     onUnitSelect: (id: string) => void;
+    dispatchedTrucks?: Record<string, boolean>;
 }
 
 const STATUS_COLORS = {
@@ -15,7 +16,7 @@ const STATUS_COLORS = {
     offline: '#EF4444',
 };
 
-export default function LeafletMap({ units, onUnitSelect }: Props) {
+export default function LeafletMap({ units, onUnitSelect, dispatchedTrucks = {} }: Props) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<import('leaflet').Map | null>(null);
 
@@ -43,7 +44,10 @@ export default function LeafletMap({ units, onUnitSelect }: Props) {
             const color = STATUS_COLORS[unit.status];
 
             const icon = L.divIcon({
-                html: `<div style="width:20px;height:20px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 0 12px ${color}88;cursor:pointer;"></div>`,
+                html: `<div class="relative w-5 h-5">
+                    <div class="absolute inset-0 rounded-full border-[3px] border-white z-10" style="background:${color};box-shadow:0 0 10px ${color}88;"></div>
+                    ${unit.status === 'online' ? `<div class="absolute inset-0 rounded-full animate-ping opacity-75" style="background:${color};"></div>` : ''}
+                </div>`,
                 className: '',
                 iconSize: [20, 20],
                 iconAnchor: [10, 10],
@@ -68,6 +72,27 @@ export default function LeafletMap({ units, onUnitSelect }: Props) {
       `);
 
             marker.on('click', () => onUnitSelect(unit.id));
+
+            if (dispatchedTrucks[unit.id]) {
+                const depotLat = unit.lat - 0.8;
+                const depotLng = unit.lng - 1.2;
+
+                L.polyline([[depotLat, depotLng], [unit.lat, unit.lng]], {
+                    color: '#3B82F6',
+                    weight: 3,
+                    dashArray: '8, 8',
+                    opacity: 0.8,
+                    lineCap: 'round'
+                }).addTo(map);
+
+                const truckIcon = L.divIcon({
+                    html: `<div style="font-size:18px;">🚚</div>`,
+                    className: '',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10],
+                });
+                L.marker([depotLat + 0.3, depotLng + 0.45], { icon: truckIcon }).addTo(map);
+            }
         });
 
         mapInstance.current = map;
@@ -76,7 +101,7 @@ export default function LeafletMap({ units, onUnitSelect }: Props) {
             map.remove();
             mapInstance.current = null;
         };
-    }, []); // eslint-disable-line
+    }, [units, dispatchedTrucks]); // Automatically re-draw when dependencies change
 
     return (
         <div className="rounded-2xl overflow-hidden relative" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>

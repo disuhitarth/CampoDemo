@@ -3,7 +3,8 @@
 import dynamic from 'next/dynamic';
 import { useApp } from '@/context/AppContext';
 import { motion } from 'framer-motion';
-import { Wifi, WifiOff, AlertTriangle } from 'lucide-react';
+import { Wifi, WifiOff, AlertTriangle, Truck, Clock } from 'lucide-react';
+import { useState } from 'react';
 
 // Lazy-load the map to avoid SSR issues with Leaflet
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
@@ -23,6 +24,12 @@ const STATUS_ICONS = {
 export default function FleetMapView() {
     const { setSelectedUnit, setView, units: contextUnits } = useApp();
     const units = Object.values(contextUnits);
+    const [dispatchedTrucks, setDispatchedTrucks] = useState<Record<string, boolean>>({});
+
+    const toggleDispatch = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        setDispatchedTrucks(prev => ({ ...prev, [id]: !prev[id] }));
+    };
 
     const handleCardClick = (unitId: string) => {
         setSelectedUnit(unitId);
@@ -37,7 +44,7 @@ export default function FleetMapView() {
             </div>
 
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-                <LeafletMap units={units} onUnitSelect={handleCardClick} />
+                <LeafletMap units={units} onUnitSelect={handleCardClick} dispatchedTrucks={dispatchedTrucks} />
             </motion.div>
 
             {/* Unit cards */}
@@ -68,8 +75,28 @@ export default function FleetMapView() {
                                 <span className="w-2 h-2 rounded-full" style={{ background: color, boxShadow: `0 0 5px ${color}` }} />
                                 <span className="text-xs font-bold uppercase" style={{ color }}>{unit.status}</span>
                             </div>
-                            <div className="text-[11px] font-mono text-[#4A5168]">{unit.lat.toFixed(4)}, {unit.lng.toFixed(4)}</div>
-                            <div className="text-[11px] text-[#7A8299] mt-1">📍 {unit.site}</div>
+
+                            <div className="flex items-center justify-between text-[11px] font-mono mt-2">
+                                <div className="text-[#7A8299] flex items-center gap-1"><Clock className="w-3 h-3" />
+                                    {unit.fuelPct < 1 ? 'Empty' : `Est. Empty: ${Math.floor(unit.fuelPct * 1.2)}h`}
+                                </div>
+                                <button
+                                    onClick={(e) => toggleDispatch(e, unit.id)}
+                                    className="flex items-center gap-1.5 px-2 py-1 rounded transition-colors"
+                                    style={dispatchedTrucks[unit.id]
+                                        ? { background: 'rgba(59,130,246,0.15)', color: '#3B82F6' }
+                                        : { background: 'rgba(255,255,255,0.05)', color: '#4A5168' }
+                                    }
+                                >
+                                    <Truck className="w-3 h-3" /> {dispatchedTrucks[unit.id] ? 'ETA: 45m' : 'Dispatch'}
+                                </button>
+                            </div>
+
+                            <div className="text-[11px] text-[#7A8299] mt-3 pt-3 flex justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                                <span>📍 {unit.site}</span>
+                                <span>{unit.lat.toFixed(4)}, {unit.lng.toFixed(4)}</span>
+                            </div>
+
                             <div className="mt-3 pt-3 grid grid-cols-3 gap-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                                 <div><div className="text-[10px] text-[#4A5168]">Supply</div><div className="text-sm font-bold font-mono text-white">{unit.supplyTemp}°F</div></div>
                                 <div><div className="text-[10px] text-[#4A5168]">Fuel</div><div className="text-sm font-bold font-mono" style={{ color: unit.fuelPct < 20 ? '#EF4444' : '#22C55E' }}>{unit.fuelPct}%</div></div>
