@@ -1,13 +1,33 @@
 'use client';
 
 import { useApp } from '@/context/AppContext';
-import { Bell, ChevronDown, Radio, Menu } from 'lucide-react';
+import { Bell, ChevronDown, Radio, Menu, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
 
 export default function Header() {
     const { user, selectedUnit, setSelectedUnit, alerts, setView, units, setMobileMenuOpen } = useApp();
     const unit = units[selectedUnit];
     const unread = alerts.filter(a => a.type !== 'resolved').length;
+    const [time, setTime] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setTime(new Date());
+        const timer = setInterval(() => setTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const timeString = time
+        ? time.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+              hour12: true,
+          })
+        : '';
 
     return (
         <header className="h-14 flex items-center gap-2 sm:gap-4 px-3 sm:px-5 flex-shrink-0 z-40 sticky top-0"
@@ -45,6 +65,14 @@ export default function Header() {
                 <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
                 LIVE
             </div>
+
+            {/* Live digital system clock */}
+            {timeString && (
+                <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-xl border border-[rgba(255,255,255,0.05)] bg-[#0E1525] font-mono text-[11px] text-[#7A8299] shadow-inner">
+                    <Clock className="w-3.5 h-3.5 text-[#FFE600] opacity-80" />
+                    <span>{timeString}</span>
+                </div>
+            )}
 
             <div className="ml-auto flex items-center gap-2">
                 {/* Alerts bell */}

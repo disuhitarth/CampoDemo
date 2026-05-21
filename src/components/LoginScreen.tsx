@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { USERS } from '@/lib/data';
 import { useApp } from '@/context/AppContext';
-import { Flame, Shield, Eye, EyeOff } from 'lucide-react';
+import { Shield, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginScreen() {
     const { login } = useApp();
@@ -45,18 +45,27 @@ export default function LoginScreen() {
                 className="w-full max-w-[420px] mx-4"
             >
                 {/* Logo */}
-                <div className="text-center mb-10">
+                <div className="text-center mb-10 flex flex-col items-center">
                     <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.1, duration: 0.4 }}
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
-                        style={{ background: 'linear-gradient(135deg, rgba(255,107,53,0.2), rgba(255,107,53,0.05))', border: '1px solid rgba(255,107,53,0.2)' }}
+                        className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-5 relative overflow-visible bg-[rgba(255,230,0,0.02)] border border-[rgba(255,230,0,0.1)]"
+                        style={{ boxShadow: '0 0 20px rgba(255,230,0,0.02)' }}
                     >
-                        <Flame className="w-8 h-8 text-[#FF6B35]" />
+                        {/* High-end glowing backdrops */}
+                        <div className="absolute inset-0 rounded-2xl bg-[#FFE600]/8 blur-[10px] pointer-events-none" />
+                        
+                        <img 
+                            src="/campo-logo.png" 
+                            alt="Campo Logo" 
+                            className="w-13 h-13 object-contain relative z-10 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+                        />
                     </motion.div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">CampoHeat</h1>
-                    <p className="text-sm text-[#7A8299] mt-1">DB 1200 Industrial HMI</p>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-white">
+                        Campo<span className="text-[#FFE600] drop-shadow-[0_0_8px_rgba(255,230,0,0.25)]">Connect</span>
+                    </h1>
+                    <p className="text-xs text-[#7A8299] mt-1.5 font-bold tracking-widest uppercase font-mono">DB 1200 Industrial HMI</p>
                 </div>
 
                 {/* Card */}

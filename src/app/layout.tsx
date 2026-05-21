@@ -6,8 +6,11 @@ import { AppProvider } from '@/context/AppContext';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'CampoHeat — DB 1200 HMI',
+  title: 'CampoConnect — DB 1200 HMI',
   description: 'Industrial Heater Remote Monitoring & Control System',
+  icons: {
+    icon: '/campo-logo.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Map, LineChart, Bell, LogOut, Zap, X } from 'lucide-react';
+import { LayoutDashboard, Map, LineChart, Bell, LogOut, X } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { ViewId } from '@/lib/data';
 
@@ -31,12 +31,19 @@ export default function Sidebar() {
                 style={{ background: '#0E1525', borderRight: '1px solid rgba(255,255,255,0.07)' }}>
                 {/* Brand */}
                 <div className="flex items-center gap-3 px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: 'linear-gradient(135deg,rgba(255,107,53,0.25),rgba(255,107,53,0.05))', border: '1px solid rgba(255,107,53,0.3)' }}>
-                        <Zap className="w-4 h-4 text-[#FF6B35]" />
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 relative overflow-visible bg-[rgba(255,230,0,0.02)] border border-[rgba(255,230,0,0.12)]">
+                        {/* Glow in back */}
+                        <div className="absolute inset-0 rounded-lg bg-[#FFE600]/8 blur-[6px] pointer-events-none" />
+                        <img 
+                            src="/campo-logo.png" 
+                            alt="Campo Logo" 
+                            className="w-7 h-7 object-contain relative z-10 filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]" 
+                        />
                     </div>
                     <div>
-                        <div className="text-sm font-bold text-white tracking-tight">CampoHeat</div>
+                        <div className="text-sm font-bold text-white tracking-tight">
+                            Campo<span className="text-[#FFE600] drop-shadow-[0_0_6px_rgba(255,230,0,0.2)]">Connect</span>
+                        </div>
                         <div className="text-[10px] text-[#7A8299] font-mono">DB 1200 HMI</div>
                     </div>
                     {/* Mobile Close Button */}
